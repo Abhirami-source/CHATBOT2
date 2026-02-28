@@ -28,7 +28,7 @@ model = genai.GenerativeModel("gemini-1.5-flash")
 client = chromadb.Client()
 gemini_ef = chromadb.utils.embedding_functions.GoogleGenerativeAiEmbeddingFunction(
     api_key=gemini_key,
-    model_name="models/text-embedding-004"
+  model_name="models/embedding-001"
 )
 collection = client.get_or_create_collection(name="stellaria_docs", embedding_function=gemini_ef)
 
