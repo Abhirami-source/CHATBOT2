@@ -49,21 +49,33 @@ class ChatRequest(BaseModel):
 
 # 5. THE CHAT ENDPOINT
 @app.post("/chat")
+@app.post("/chat")
 async def chat(request: ChatRequest):
     try:
-        # Search the CSV for the 2 most relevant rows
+        # 1. Get data from your CSV/Vector DB
         results = collection.query(query_texts=[request.message], n_results=2)
-        context = "\n".join(results["documents"][0])
         
-        # Crafting the response using Gemini
-        prompt = f"Context: {context}\n\nUser Question: {request.message}\n\nAnswer based on context:"
+        # Flatten documents list and create context string
+        context_list = results.get("documents", [[]])[0]
+        context = "\n".join(context_list) if context_list else "No specific data found."
+
+        # 2. Better Prompting for Gemini
+        prompt = (
+            f"You are the Stellaria Assistant. Use the context below to answer the question.\n"
+            f"If the answer isn't in the context, use your general knowledge but mention you're doing so.\n\n"
+            f"CONTEXT:\n{context}\n\n"
+            f"USER QUESTION: {request.message}\n\n"
+            f"ASSISTANT ANSWER:"
+        )
+
         response = model.generate_content(prompt)
         
-        return {"reply": response.text, "context_used": context}
-    except Exception as e:
-        print(f"Error during chat: {e}")
-        return {"error": str(e)}
+        # 3. Return the reply
+        return {"reply": response.text}
 
+    except Exception as e:
+        print(f"Error: {e}")
+        return {"reply": "The stars are a bit cloudy. I'm having trouble reaching my brain right now!"}
 # 6. RENDER DEPLOYMENT GUARD
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
