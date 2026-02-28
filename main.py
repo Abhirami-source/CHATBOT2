@@ -5,6 +5,10 @@ import pandas as pd
 import google.generativeai as genai
 import chromadb
 import os
+import chromadb
+from chromadb.utils import embedding_functions  # <--- THIS IS THE MISSING LINE
+import google.generativeai as genai
+# ... your other imports
 
 app = FastAPI()
 
