@@ -52,11 +52,18 @@ class ChatRequest(BaseModel):
 @app.post("/chat")
 async def chat(request: ChatRequest):
     try:
-      # Search the CSV for the 2 most relevant rows
-      results = collection.query(query_texts=[request.message], n_results=2)
-      context = "\n".join(results["documents"][0])
-    
-if name == "main":
-import uvicorn
-port = int(os.environ.get("PORT", 10000))
-uvicorn.run(app, host="0.0.0.0", port=port)
+        # Search the CSV for the 2 most relevant rows
+        results = collection.query(query_texts=[request.message], n_results=2)
+        context = "\n".join(results["documents"][0])
+        # You'll likely want to return something here
+        return {"context": context}
+    except Exception as e:
+        # A try block MUST have an except or finally block
+        print(f"Error: {e}")
+        return {"error": str(e)}
+
+if __name__ == "__main__":
+    import uvicorn
+    import os
+    port = int(os.environ.get("PORT", 10000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
