@@ -22,7 +22,7 @@ app.add_middleware(
 # 2. CONFIGURATION
 gemini_key = os.getenv("GEMINI_API_KEY")
 genai.configure(api_key=gemini_key)
-model = genai.GenerativeModel("gemini-1.5-flash")
+model = genai.GenerativeModel("models/gemini-1.5-flash")
 
 # 3. VECTOR DATABASE SETUP
 client = chromadb.Client()
