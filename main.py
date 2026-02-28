@@ -49,33 +49,33 @@ class ChatRequest(BaseModel):
 
 # 5. THE CHAT ENDPOINT
 @app.post("/chat")
-@app.post("/chat")
 async def chat(request: ChatRequest):
     try:
-        # 1. Get data from your CSV/Vector DB
+        # 1. Search the CSV
         results = collection.query(query_texts=[request.message], n_results=2)
-        
-        # Flatten documents list and create context string
-        context_list = results.get("documents", [[]])[0]
-        context = "\n".join(context_list) if context_list else "No specific data found."
+        documents = results.get("documents", [[]])[0]
+        context = "\n".join(documents) if documents else "No specific context from CSV."
 
-        # 2. Better Prompting for Gemini
+        # 2. Improved "Helpful" Prompt
         prompt = (
-            f"You are the Stellaria Assistant. Use the context below to answer the question.\n"
-            f"If the answer isn't in the context, use your general knowledge but mention you're doing so.\n\n"
+            f"You are the Stellaria Assistant. Use the following context from our internal docs "
+            f"to answer the question. If the information isn't in the context, use your general "
+            f"knowledge to provide a helpful, space-themed answer.\n\n"
             f"CONTEXT:\n{context}\n\n"
             f"USER QUESTION: {request.message}\n\n"
-            f"ASSISTANT ANSWER:"
+            f"ASSISTANT:"
         )
 
+        # 3. Get response from Gemini
         response = model.generate_content(prompt)
         
-        # 3. Return the reply
-        return {"reply": response.text}
+        # Ensure we return a string, not 'undefined'
+        bot_reply = response.text if response.text else "I'm having trouble focusing my sensors. Try again?"
+        return {"reply": bot_reply}
 
     except Exception as e:
         print(f"Error: {e}")
-        return {"reply": "The stars are a bit cloudy. I'm having trouble reaching my brain right now!"}
+        return {"reply": "Connection to the space station lost. Please try again later!"}
 # 6. RENDER DEPLOYMENT GUARD
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
