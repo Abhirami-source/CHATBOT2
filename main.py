@@ -26,18 +26,23 @@ model = genai.GenerativeModel("gemini-1.5-flash")
 
 # 3. THE SMART WAREHOUSE: Setup ChromaDB (Vector DB)
 client = chromadb.Client()
-gemini_ef = chromadb.utils.embedding_functions.GoogleGenerativeAiEmbeddingFunction(
-    api_key=gemini_key,
-model_name="models/text-embedding-004"
+default_ef = embedding_functions.DefaultEmbeddingFunction()
+
+collection = client.get_or_create_collection(
+name="stellaria_docs",
+embedding_function=default_ef
 )
-collection = client.get_or_create_collection(name="stellaria_docs", embedding_function=gemini_ef)
 
 # 4. DATA LOADING: Putting your CSV into the Brain
 # This runs once when the server starts
+try:
 df = pd.read_csv("stellchatbotver1(in).csv").fillna("")
 documents = (df['question'] + " " + df['answer']).tolist()
 ids = [str(i) for i in range(len(documents))]
 collection.add(documents=documents, ids=ids)
+print("Successfully loaded CSV.")
+except Exception as e:
+print(f"Error loading CSV: {e}")
 
 # This defines the "shape" of the message coming from your HTML
 class ChatRequest(BaseModel):
@@ -46,13 +51,12 @@ class ChatRequest(BaseModel):
 # 5. THE ENDPOINT: The "Service Window"
 @app.post("/chat")
 async def chat(request: ChatRequest):
+    try:
     # Search the CSV for the 2 most relevant rows
     results = collection.query(query_texts=[request.message], n_results=2)
     context = "\n".join(results["documents"][0])
     
-    # Send the CSV info + User question to Gemini
-    prompt = f"Context: {context}\n\nUser: {request.message}\nAnswer as Stellaria Club Assistant:"
-    response = model.generate_content(prompt)
-    
-    # Send the answer back to your HTML bubble
-    return {"reply": response.text}
+    if name == "main":
+import uvicorn
+port = int(os.environ.get("PORT", 10000))
+uvicorn.run(app, host="0.0.0.0", port=port)
