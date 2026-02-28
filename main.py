@@ -41,7 +41,7 @@ try:
  ids = [str(i) for i in range(len(documents))]
  collection.add(documents=documents, ids=ids)
  print("Successfully loaded CSV.")
- except Exception as e:
+except Exception as e:
  print(f"Error loading CSV: {e}")
 
 # This defines the "shape" of the message coming from your HTML
@@ -52,11 +52,11 @@ class ChatRequest(BaseModel):
 @app.post("/chat")
 async def chat(request: ChatRequest):
     try:
-     # Search the CSV for the 2 most relevant rows
-     results = collection.query(query_texts=[request.message], n_results=2)
-     context = "\n".join(results["documents"][0])
+      # Search the CSV for the 2 most relevant rows
+      results = collection.query(query_texts=[request.message], n_results=2)
+      context = "\n".join(results["documents"][0])
     
-     if name == "main":
+if name == "main":
 import uvicorn
 port = int(os.environ.get("PORT", 10000))
 uvicorn.run(app, host="0.0.0.0", port=port)
